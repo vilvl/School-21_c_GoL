@@ -170,8 +170,8 @@ void logic(int ***m_cur, int ***m_nxt) {
     int **field = *m_cur;
     int **field_num2 = *m_nxt;
     int i, j, nbr;
-    for (i = 0; i < FIELD_W; i++) {
-        for (j = 0; j < FIELD_H; j++) {
+    for (i = 0; i < FIELD_H; i++) {
+        for (j = 0; j < FIELD_W; j++) {
             nbr = count_neighbor(field, i, j);
             if (nbr == 2)
                 field_num2[i][j] = field[i][j];
