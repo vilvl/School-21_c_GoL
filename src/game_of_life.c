@@ -67,12 +67,13 @@ int main(int argc, char *argv[]) {
         fclose(fp);
     }
     int iter = 0;
+    draw(cond, iter);
     while (1) {
-        draw(cond, iter);
         int inp = get_input();
         if (inp == 1) {
             logic(&cond, &next_cond);
             iter++;
+            draw(cond, iter);
         } else if (inp == -1) {
             break;
         }
@@ -81,16 +82,15 @@ int main(int argc, char *argv[]) {
 }
 
 int get_input() {
-    char ch;
     int inp;
-    scanf("%c", &ch);
+    int ch = getchar();
     if (ch == KEY_NEXT)
         inp = 1;
     else if (ch == KEY_EXIT)
         inp = -1;
     else
         inp = 0;
-    fseek(stdin, 0, SEEK_END);
+    fflush(stdin);
     return inp;
 }
 
