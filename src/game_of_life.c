@@ -11,7 +11,7 @@
 #define KEY_NEXT ' '
 #define KEY_EXIT 'q'
 
-#define DEFAULT_FILLNESS 30
+#define DEFAULT_FILLNESS 10
 
 int** input_array(int *n, int *m);
 void output(int **matrix, int n, int m);
@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
     
     FILE *fp = stdin;
 
-    if (argc == 2) {
+    if (argc > 1) {
         if (access(argv[1], F_OK) == 0) {
             fp = fopen(argv[1], "r");
             param = -1;
@@ -166,7 +166,7 @@ int count_neighbor(int **field, int i, int j) {
   return count;
 }
 
-void logic(int** *m_cur, int** *m_nxt) {
+void logic(int ***m_cur, int ***m_nxt) {
     int **field = *m_cur;
     int **field_num2 = *m_nxt;
     int i, j, nbr;
