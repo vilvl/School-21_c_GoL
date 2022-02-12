@@ -3,8 +3,8 @@
 #define FIELD_W 80
 #define FIELD_H 25
 
-int count_heighbor(int** *a, int i, int j);
-int check_heighbor(int** *a, int i, int j);
+int count_neighbor(int** *a, int i, int j);
+int check_neighbor(int** *a, int i, int j);
 int transfer_w(int i);
 int transfer_h(int j);
 void swap(int** *a, int** *b);
@@ -14,30 +14,24 @@ int main() {
     
 }
 
-int check_heighbor(int **field, int i, int j) {
-    if (field[i][j] != 0) {
-        i = (i + FIELD_H) % FIELD_H;
-        j = (j + FIELD_W) % FIELD_W;
-        return 1;
-    } else {
-        i = (i + FIELD_H) % FIELD_H;
-        j = (j + FIELD_W) % FIELD_W;
-        return 0;
-    }
+int check_neighbor(int **field, int i, int j) {
+    i = (i + FIELD_H) % FIELD_H;
+    j = (j + FIELD_W) % FIELD_W;
+    return field[i][j];
 }
 
 int count_neighbor(int **a, int i, int j) {
 
     int count = 0;
 
-    if (check_heighbor(field, i - 1, j - 1)) count++;
-    if (check_heighbor(field, i - 1, j)) count++;
-    if (check_heighbor(field, i - 1, j + 1)) count++;
-    if (check_heighbor(field, i, j - 1)) count++;
-    if (check_heighbor(field, i, j + 1)) count++;
-    if (check_heighbor(field, i + 1, j - 1)) count++;
-    if (check_heighbor(field, i + 1, j)) count++;
-    if (check_heighbor(field, i + 1, j + 1)) count++;
+    count += check_neighbor(field, i - 1, j - 1);
+    count += check_neighbor(field, i - 1, j);
+    count += check_neighbor(field, i - 1, j + 1));
+    count += check_neighbor(field, i, j - 1));
+    count += check_neighbor(field, i, j + 1));
+    count += check_neighbor(field, i + 1, j - 1));
+    count += check_neighbor(field, i + 1, j));
+    count += check_neighbor(field, i + 1, j + 1));
   
   return count;
 }
@@ -48,7 +42,7 @@ void logic(int** *m_cur, int** *m_nxt) {
     int i, j, nbr;
     for (i = 0; i < FIELD_W; i++) {
         for (j = 0; j < FIELD_H; j++) {
-            nbr = count_heighbor(field, i, j);
+            nbr = count_neighbor(field, i, j);
             if (nbr == 2)
                 field_num2[i][j] = field[i][j];
             if (nbr == 3)
@@ -65,13 +59,3 @@ void swap(int** *a, int** *b) {
     *a = *b;
     *b = s;
 }
-
-/*
-int transfer_w(int i) {
-    while (i == 0) i = i + FIELD_W;
-    while (i >= FIELD_W) i = i - FIELD_W;
-    return i;
-}
-
-int transfer_h(
-*/
