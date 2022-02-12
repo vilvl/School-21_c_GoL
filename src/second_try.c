@@ -5,8 +5,6 @@
 
 int count_neighbor(int** *a, int i, int j);
 int check_neighbor(int** *a, int i, int j);
-int transfer_w(int i);
-int transfer_h(int j);
 void swap(int** *a, int** *b);
 void logic(int** *a);
 
