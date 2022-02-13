@@ -73,10 +73,10 @@ int main(int argc, char *argv[]) {
         if (inp == 1) {
             logic(&cond, &next_cond);
             iter++;
-            draw(cond, iter);
         } else if (inp == -1) {
             break;
         }
+        draw(cond, iter);
     }
     return ret_end(0, cond, next_cond);;
 }
@@ -90,7 +90,11 @@ int get_input() {
         inp = -1;
     else
         inp = 0;
-    fflush(stdin);
+    while (1) {
+        int ch = getchar();
+        if (ch == '\n' || ch == EOF)
+            break;
+    }
     return inp;
 }
 
