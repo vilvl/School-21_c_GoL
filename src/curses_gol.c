@@ -36,6 +36,8 @@ void game_loop(int **cond, int **next_cond, int param);
 
 int get_cmd_args(int argc, char **argv, FILE** fp);
 int move_cursor(int ch, int *curs_x, int *curs_y);
+int change_step_by_step(int *mode, int *curs_x, int *curs_y, int **cond, int iter, int param);
+int change_auto_mode(int *mode, int *sleep_ms);
 
 int** get_matrix(int rws, int cls);
 void free_matrix(int **m);
@@ -97,39 +99,11 @@ void game_loop(int **cond, int **next_cond, int param) {
     while (getch() != KEY_NEXT_) {}
     while (1) {
         if (mode) {
-            while (1) {
-                int ch = getch();
-                if (ch == KEY_NEXT_) {
-                    break;
-                } else if (ch == KEY_STEP_MODE) {
-                    mode = !mode;
-                    break;
-                } else if (ch == KEY_EXIT_) {
-                    return;
-                } else if (ch == KEY_CHANGE_CELL) {
-                    cond[curs_y][curs_x] = !cond[curs_y][curs_x];
-                    draw(cond, iter, param, mode, sleep_ms, curs_x, curs_y);
-                } else if (move_cursor(ch, &curs_x, &curs_y)) {
-                    draw(cond, iter, param, mode, sleep_ms, curs_x, curs_y);
-                }
-            }
+            if (change_step_by_step(&mode, &curs_x, &curs_y, cond, iter, param))
+                return;
         } else {
-            usleep(1000 * sleep_ms);
-            switch (getch()) {
-                case KEY_EXIT_:
-                    return;
-                case KEY_INCREASE_SPEED:
-                    if (sleep_ms > MIN_SLEEP)
-                        sleep_ms /= SLEEP_CHANGE_STEP;
-                    break;
-                case KEY_SLOW_DOWN_SPEED:
-                    if (sleep_ms < MAX_SLEEP)
-                        sleep_ms *= SLEEP_CHANGE_STEP;
-                    break;
-                case KEY_STEP_MODE:
-                    mode = !mode;
-                    break;
-            }
+            if (change_auto_mode(&mode, &sleep_ms))
+                return;
         }
         logic(&cond, &next_cond);
         draw(cond, iter, param, mode, sleep_ms, curs_x, curs_y);
@@ -137,7 +111,50 @@ void game_loop(int **cond, int **next_cond, int param) {
     }
 }
 
+
+
 //////////// INPUT ///////////////
+
+int change_step_by_step(int *mode, int *curs_x, int *curs_y, int **cond, int iter, int param) {
+    while (1) {
+        int ch = getch();
+        if (ch == KEY_NEXT_) {
+            break;
+        } else if (ch == KEY_STEP_MODE) {
+            *mode = !(*mode);
+            break;
+        } else if (ch == KEY_EXIT_) {
+            return 1;
+        } else if (ch == KEY_CHANGE_CELL) {
+            cond[*curs_y][*curs_x] = !cond[*curs_y][*curs_x];
+            draw(cond, iter, param, *mode, 0, *curs_x, *curs_y);
+        } else if (move_cursor(ch, curs_x, curs_y)) {
+            draw(cond, iter, param, *mode, 0, *curs_x, *curs_y);
+        }
+    }
+    return 0;
+}
+
+int change_auto_mode(int *mode, int *sleep_ms) {
+    usleep(1000 * (*sleep_ms));
+    switch (getch()) {
+        case KEY_EXIT_:
+            return 1;
+        case KEY_INCREASE_SPEED:
+            if (*sleep_ms > MIN_SLEEP)
+                *sleep_ms /= SLEEP_CHANGE_STEP;
+            break;
+        case KEY_SLOW_DOWN_SPEED:
+            if (*sleep_ms < MAX_SLEEP)
+                *sleep_ms *= SLEEP_CHANGE_STEP;
+            break;
+        case KEY_STEP_MODE:
+            *mode = !(*mode);
+            break;
+    }
+    return 0;
+}
+
 
 int move_cursor(int ch, int *curs_x, int *curs_y) {
     if (ch == KEY_UP_)
