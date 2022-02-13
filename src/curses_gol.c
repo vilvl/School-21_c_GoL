@@ -175,7 +175,7 @@ void draw(int** field, int iter, int param, int mode, int ms_sleep, int curs_x, 
     if (param > 0)
         printw("SEED: %d; ", param);
     if (mode)
-        printw("MODE: STEP; X: %d; Y: %d; ", curs_x, curs_y);
+        printw("MODE: STEP; ");
     else
         printw("MODE: AUTO; SLEEP %d; ", ms_sleep);
     printw("TURN: %d\n", iter);
@@ -186,13 +186,13 @@ void draw(int** field, int iter, int param, int mode, int ms_sleep, int curs_x, 
     for (int i = 0; i <= FIELD_H - 1; i++) {
         printw("|");
         for (int j = 0; j <= FIELD_W - 1; j++) {
-            if ((i == curs_y) && (j == curs_x))
+            if ((i == curs_y) && (j == curs_x) && mode)
                 attron(COLOR_PAIR(2));
             if (field[i][j])
                 printw("%c", CELL);
             else
                 printw("%c", NO_CELL);
-            if ((i == curs_y) && (j == curs_x))
+            if ((i == curs_y) && (j == curs_x) && mode)
                 attron(COLOR_PAIR(1));
         }
         printw("|\n");
@@ -201,6 +201,13 @@ void draw(int** field, int iter, int param, int mode, int ms_sleep, int curs_x, 
     for (int i = 0; i < FIELD_W; ++i)
         printw("-");
     printw("#\n");
+    if (mode) {
+        printw("SPACE - NEXT TURN, E - CHANGE TO AUTO MODE, Q - EXIT\n");
+        printw("WASD - MOVEMENT, C - KILL or BORN CELL BELOW CURSOR\n");
+    } else {
+        printw("E - CHANGE TO STEP BY STEP MODE, Q - EXIT\n");
+        printw("I - INCREASE SPEED, J - DECREASE SPEED\n");
+    }
     refresh();
 }
 
