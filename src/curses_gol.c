@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <time.h>
 #include <ncurses.h>
+// #include <time.h>
 
 #define FIELD_W 80
 #define FIELD_H 25
@@ -18,9 +18,9 @@
 
 #define DEFAULT_FILLNESS 10
 
-#define DEFAULT_SLEEP 1000
-#define SLEEP_CHANGE_STEP 100
-#define MIN_SLEEP 199
+#define DEFAULT_SLEEP 500
+#define SLEEP_CHANGE_STEP 1.2
+#define MIN_SLEEP 25
 
 void game_loop(int **cond, int **next_cond, int param);
 
@@ -42,7 +42,7 @@ void generate_field(int** mas, int param);
 int ret_end(int code, int **m1, int **m2);
 int is_pos_int(char *number);
 
-void draw(int** field, int iter, int param);
+void draw(int** field, int iter, int param, int mode, int ms_sleep);
 
 // param is a game mode
 // -1 to read preset from file by path
@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
     if (param == -1) {
         fclose(fp);
     }
-    draw(cond, 0, param);
+    draw(cond, 0, param, 0, DEFAULT_SLEEP);
     game_loop(cond, next_cond, param);
     
     return ret_end(0, cond, next_cond);
@@ -100,10 +100,10 @@ void game_loop(int **cond, int **next_cond, int param) {
                     return;
                 case KEY_INCREASE_SPEED:
                     if (sleep_ms > MIN_SLEEP)
-                        sleep_ms -= SLEEP_CHANGE_STEP;
+                        sleep_ms /= SLEEP_CHANGE_STEP;
                     break;
                 case KEY_SLOW_DOWN_SPEED:
-                    sleep_ms += SLEEP_CHANGE_STEP;
+                    sleep_ms *= SLEEP_CHANGE_STEP;
                     break;
                 case KEY_STEP_MODE:
                     mode = !mode;
@@ -111,7 +111,7 @@ void game_loop(int **cond, int **next_cond, int param) {
             }
         }
         logic(&cond, &next_cond);
-        draw(cond, iter, param);
+        draw(cond, iter, param, mode, sleep_ms);
         iter++;
     }
 }
@@ -135,11 +135,15 @@ int get_cmd_args(int argc, char **argv, FILE** fp) {
 
 /////////// DRAWING //////////////
 
-void draw(int** field, int iter, int param) {
+void draw(int** field, int iter, int param, int mode, int ms_sleep) {
     clear();
     if (param > 0) 
-        printw("SEED %d; ", param);
-    printw("TURN %d\n", iter);
+        printw("SEED: %d; ", param);
+    if (mode)
+        printw("MODE: STEP; ");
+    else
+        printw("MODE: AUTO; SLEEP %d; ", ms_sleep);
+    printw("TURN: %d\n", iter);
     printw("#");
     for (int i = 0; i < FIELD_W; ++i)
         printw("-");
