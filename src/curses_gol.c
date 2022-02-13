@@ -21,6 +21,7 @@
 #define DEFAULT_SLEEP 500
 #define SLEEP_CHANGE_STEP 1.2
 #define MIN_SLEEP 25
+#define MAX_SLEEP 2500
 
 void game_loop(int **cond, int **next_cond, int param);
 
@@ -103,7 +104,8 @@ void game_loop(int **cond, int **next_cond, int param) {
                         sleep_ms /= SLEEP_CHANGE_STEP;
                     break;
                 case KEY_SLOW_DOWN_SPEED:
-                    sleep_ms *= SLEEP_CHANGE_STEP;
+                    if (sleep_ms < MAX_SLEEP)
+                        sleep_ms *= SLEEP_CHANGE_STEP;
                     break;
                 case KEY_STEP_MODE:
                     mode = !mode;
