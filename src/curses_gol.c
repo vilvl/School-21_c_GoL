@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <ncurses.h>
 
 #define FIELD_W 80
 #define FIELD_H 25
@@ -9,12 +10,20 @@
 #define CELL '*'
 #define NO_CELL ' '
 
-#define KEY_NEXT ' '
-#define KEY_EXIT 'q'
+#define KEY_NEXT_ ' '
+#define KEY_EXIT_ 'q'
+#define KEY_STEP_MODE 's'
+#define KEY_INCREASE_SPEED 'i'
+#define KEY_SLOW_DOWN_SPEED 'j'
 
 #define DEFAULT_FILLNESS 10
 
-int get_input();
+#define DEFAULT_SLEEP 1000
+#define SLEEP_CHANGE_STEP 100
+#define MIN_SLEEP 199
+
+void game_loop(int **cond, int **next_cond, int param);
+
 int get_cmd_args(int argc, char **argv, FILE** fp);
 
 int** get_matrix(int rws, int cls);
@@ -34,7 +43,6 @@ int ret_end(int code, int **m1, int **m2);
 int is_pos_int(char *number);
 
 void draw(int** field, int iter, int param);
-void clear_screen(int counter);
 
 // param is a game mode
 // -1 to read preset from file by path
@@ -61,19 +69,51 @@ int main(int argc, char **argv) {
     if (param == -1) {
         fclose(fp);
     }
-    int iter = 0;
-    draw(cond, iter, param);
+    draw(cond, 0, param);
+    game_loop(cond, next_cond, param);
+    
+    return ret_end(0, cond, next_cond);
+}
+
+void game_loop(int **cond, int **next_cond, int param) {
+    int sleep_ms = DEFAULT_SLEEP;
+    int iter = 1;
+    int mode = 0;
+    while (getch() != KEY_NEXT_) {}
     while (1) {
-        int inp = get_input();
-        if (inp == 1) {
-            logic(&cond, &next_cond);
-            iter++;
-        } else if (inp == -1) {
-            break;
+        if (mode) {
+            while (1) {
+                int ch = getch();
+                if (ch == KEY_NEXT_) {
+                    break;
+                } else if (ch == KEY_STEP_MODE) {
+                    mode = !mode;
+                    break;
+                } else if (ch == KEY_EXIT_) {
+                    return;
+                }
+            }
+        } else {
+            usleep(1000 * sleep_ms);
+            switch (getch()) {
+                case KEY_EXIT_: 
+                    return;
+                case KEY_INCREASE_SPEED:
+                    if (sleep_ms > MIN_SLEEP)
+                        sleep_ms -= SLEEP_CHANGE_STEP;
+                    break;
+                case KEY_SLOW_DOWN_SPEED:
+                    sleep_ms += SLEEP_CHANGE_STEP;
+                    break;
+                case KEY_STEP_MODE:
+                    mode = !mode;
+                    break;
+            }
         }
+        logic(&cond, &next_cond);
         draw(cond, iter, param);
+        iter++;
     }
-    return ret_end(0, cond, next_cond);;
 }
 
 //////////// INPUT ///////////////
@@ -93,55 +133,32 @@ int get_cmd_args(int argc, char **argv, FILE** fp) {
     return param;
 }
 
-int get_input() {
-    int inp;
-    int ch = getchar();
-    if (ch == KEY_NEXT)
-        inp = 1;
-    else if (ch == KEY_EXIT)
-        inp = -1;
-    else
-        inp = 0;
-    while (1) {
-        ch = getchar();
-        if (ch == '\n' || ch == EOF)
-            break;
-    }
-    return inp;
-}
-
 /////////// DRAWING //////////////
 
 void draw(int** field, int iter, int param) {
-    clear_screen(20);
+    clear();
     if (param > 0) 
-        printf("SEED %d; ", param);
-    printf("TURN %d\n", iter);
-    printf("#");
+        printw("SEED %d; ", param);
+    printw("TURN %d\n", iter);
+    printw("#");
     for (int i = 0; i < FIELD_W; ++i)
-        printf("-");
-    printf("#\n");
+        printw("-");
+    printw("#\n");
     for (int i = 0; i <= FIELD_H - 1; i++) {
-        printf("|");
+        printw("|");
         for (int j = 0; j <= FIELD_W - 1; j++) {
             if (field[i][j])
-                printf("%c", CELL);
+                printw("%c", CELL);
             else
-                printf("%c", NO_CELL);
+                printw("%c", NO_CELL);
         }
-        printf("|\n");
+        printw("|\n");
     }
-    printf("#");
+    printw("#");
     for (int i = 0; i < FIELD_W; ++i)
-        printf("-");
-    printf("#\n");
-}
-
-void clear_screen(int counter) {
-    while (counter > 0) {
-        --counter;
-        printf("\n");
-    }
+        printw("-");
+    printw("#\n");
+    refresh();
 }
 
 /////////// MEMORY FREE & RESERVE //////////////
@@ -217,16 +234,23 @@ void swap_matrix(int** *a, int** *b) {
 
 int init(int** mas, int param, FILE *fp) {
     clear_mas(mas);
+    int res_err = 0;
     if (param == -1) {
-        return scan_mas(mas, fp);
+        res_err = scan_mas(mas, fp);
     } else if (param > 0) {
         generate_field(mas, param);
     } else if (param == 0) {
-        int res = scan_mas(mas, fp);
+        res_err = scan_mas(mas, fp);
         stdin = freopen("/dev/tty", "rw", stdin);
-        return res;
     }
-    return 0;
+    // ncurses init
+    if (!res_err) {
+        initscr();
+        noecho();
+        curs_set(0);
+        nodelay(stdscr, TRUE);
+    }
+    return res_err;
 }
 
 void clear_mas(int** mas) {
