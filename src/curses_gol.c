@@ -12,9 +12,15 @@
 
 #define KEY_NEXT_ ' '
 #define KEY_EXIT_ 'q'
-#define KEY_STEP_MODE 's'
+#define KEY_STEP_MODE 'e'
 #define KEY_INCREASE_SPEED 'i'
 #define KEY_SLOW_DOWN_SPEED 'j'
+
+#define KEY_UP_ 'w'
+#define KEY_RIGHT_ 'd'
+#define KEY_DOWN_ 's'
+#define KEY_LEFT_ 'a'
+#define KEY_CHANGE_CELL 'c'
 
 #define DEFAULT_FILLNESS 10
 
@@ -23,9 +29,13 @@
 #define MIN_SLEEP 25
 #define MAX_SLEEP 2500
 
+#define ANSI_COLOR_CYAN    "\x1b[36m"
+#define ANSI_COLOR_RESET   "\x1b[0m"
+
 void game_loop(int **cond, int **next_cond, int param);
 
 int get_cmd_args(int argc, char **argv, FILE** fp);
+int move_cursor(int ch, int *curs_x, int *curs_y);
 
 int** get_matrix(int rws, int cls);
 void free_matrix(int **m);
@@ -43,7 +53,8 @@ void generate_field(int** mas, int param);
 int ret_end(int code, int **m1, int **m2);
 int is_pos_int(char *number);
 
-void draw(int** field, int iter, int param, int mode, int ms_sleep);
+void draw(int** field, int iter, int param, 
+          int mode, int ms_sleep, int curs_x, int curs_y);
 
 // param is a game mode
 // -1 to read preset from file by path
@@ -70,7 +81,7 @@ int main(int argc, char **argv) {
     if (param == -1) {
         fclose(fp);
     }
-    draw(cond, 0, param, 0, DEFAULT_SLEEP);
+    draw(cond, 0, param, 0, DEFAULT_SLEEP, 0, 0);
     game_loop(cond, next_cond, param);
 
     return ret_end(0, cond, next_cond);
@@ -80,6 +91,9 @@ void game_loop(int **cond, int **next_cond, int param) {
     int sleep_ms = DEFAULT_SLEEP;
     int iter = 1;
     int mode = 0;
+    int curs_x = FIELD_W/2;
+    int curs_y = FIELD_H/2;
+
     while (getch() != KEY_NEXT_) {}
     while (1) {
         if (mode) {
@@ -92,6 +106,11 @@ void game_loop(int **cond, int **next_cond, int param) {
                     break;
                 } else if (ch == KEY_EXIT_) {
                     return;
+                } else if (ch == KEY_CHANGE_CELL){
+                    cond[curs_y][curs_x] = !cond[curs_y][curs_x];
+                    draw(cond, iter, param, mode, sleep_ms, curs_x, curs_y);
+                } else if (move_cursor(ch, &curs_x, &curs_y)) {
+                    draw(cond, iter, param, mode, sleep_ms, curs_x, curs_y);
                 }
             }
         } else {
@@ -113,12 +132,26 @@ void game_loop(int **cond, int **next_cond, int param) {
             }
         }
         logic(&cond, &next_cond);
-        draw(cond, iter, param, mode, sleep_ms);
+        draw(cond, iter, param, mode, sleep_ms, curs_x, curs_y);
         iter++;
     }
 }
 
 //////////// INPUT ///////////////
+
+int move_cursor(int ch, int *curs_x, int *curs_y) {
+    if (ch == KEY_UP_)
+        *curs_y = ((*curs_y - 1) + FIELD_H) % FIELD_H;
+    else if (ch == KEY_DOWN_)
+        *curs_y = (*curs_y + 1) % FIELD_H;
+    else if (ch == KEY_LEFT_)
+        *curs_x = ((*curs_x - 1) + FIELD_W) % FIELD_W;
+    else if (ch == KEY_RIGHT_)
+        *curs_x = (*curs_x + 1) % FIELD_W;
+    else
+        return 0;
+    return 1;
+} 
 
 int get_cmd_args(int argc, char **argv, FILE** fp) {
     int param = 0;
@@ -137,12 +170,12 @@ int get_cmd_args(int argc, char **argv, FILE** fp) {
 
 /////////// DRAWING //////////////
 
-void draw(int** field, int iter, int param, int mode, int ms_sleep) {
+void draw(int** field, int iter, int param, int mode, int ms_sleep, int curs_x, int curs_y) {
     clear();
     if (param > 0)
         printw("SEED: %d; ", param);
     if (mode)
-        printw("MODE: STEP; ");
+        printw("MODE: STEP; X: %d; Y: %d; ", curs_x, curs_y);
     else
         printw("MODE: AUTO; SLEEP %d; ", ms_sleep);
     printw("TURN: %d\n", iter);
@@ -153,10 +186,14 @@ void draw(int** field, int iter, int param, int mode, int ms_sleep) {
     for (int i = 0; i <= FIELD_H - 1; i++) {
         printw("|");
         for (int j = 0; j <= FIELD_W - 1; j++) {
+            if ((i == curs_y) && (j == curs_x))
+                attron(COLOR_PAIR(2));
             if (field[i][j])
                 printw("%c", CELL);
             else
                 printw("%c", NO_CELL);
+            if ((i == curs_y) && (j == curs_x))
+                attron(COLOR_PAIR(1));
         }
         printw("|\n");
     }
@@ -252,10 +289,14 @@ int init(int** mas, int param, FILE *fp) {
     // ncurses init
     if (!res_err) {
         initscr();
+        start_color();
         noecho();
         curs_set(0);
         nodelay(stdscr, TRUE);
-    }
+        init_pair(1, COLOR_WHITE, COLOR_BLACK);
+        init_pair(2, COLOR_BLACK, COLOR_WHITE);
+        attron(COLOR_PAIR(1));
+}
     return res_err;
 }
 
