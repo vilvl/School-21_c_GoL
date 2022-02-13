@@ -53,7 +53,7 @@ void generate_field(int** mas, int param);
 int ret_end(int code, int **m1, int **m2);
 int is_pos_int(char *number);
 
-void draw(int** field, int iter, int param, 
+void draw(int** field, int iter, int param,
           int mode, int ms_sleep, int curs_x, int curs_y);
 
 // param is a game mode
@@ -106,7 +106,7 @@ void game_loop(int **cond, int **next_cond, int param) {
                     break;
                 } else if (ch == KEY_EXIT_) {
                     return;
-                } else if (ch == KEY_CHANGE_CELL){
+                } else if (ch == KEY_CHANGE_CELL) {
                     cond[curs_y][curs_x] = !cond[curs_y][curs_x];
                     draw(cond, iter, param, mode, sleep_ms, curs_x, curs_y);
                 } else if (move_cursor(ch, &curs_x, &curs_y)) {
@@ -151,7 +151,7 @@ int move_cursor(int ch, int *curs_x, int *curs_y) {
     else
         return 0;
     return 1;
-} 
+}
 
 int get_cmd_args(int argc, char **argv, FILE** fp) {
     int param = 0;
