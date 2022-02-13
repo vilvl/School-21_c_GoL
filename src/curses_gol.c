@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     }
     draw(cond, 0, param, 0, DEFAULT_SLEEP);
     game_loop(cond, next_cond, param);
-    
+
     return ret_end(0, cond, next_cond);
 }
 
@@ -96,7 +96,7 @@ void game_loop(int **cond, int **next_cond, int param) {
         } else {
             usleep(1000 * sleep_ms);
             switch (getch()) {
-                case KEY_EXIT_: 
+                case KEY_EXIT_:
                     return;
                 case KEY_INCREASE_SPEED:
                     if (sleep_ms > MIN_SLEEP)
@@ -137,7 +137,7 @@ int get_cmd_args(int argc, char **argv, FILE** fp) {
 
 void draw(int** field, int iter, int param, int mode, int ms_sleep) {
     clear();
-    if (param > 0) 
+    if (param > 0)
         printw("SEED: %d; ", param);
     if (mode)
         printw("MODE: STEP; ");

@@ -113,7 +113,7 @@ int get_input() {
 
 void draw(int** field, int iter, int param) {
     clear_screen(20);
-    if (param > 0) 
+    if (param > 0)
         printf("SEED %d; ", param);
     printf("TURN %d\n", iter);
     printf("#");
